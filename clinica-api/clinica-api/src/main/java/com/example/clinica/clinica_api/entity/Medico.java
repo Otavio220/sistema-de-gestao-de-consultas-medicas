@@ -1,6 +1,7 @@
 package com.example.clinica.clinica_api.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "medicos")
@@ -27,8 +28,10 @@ public class Medico {
     @JoinColumn(name = "especialidade_id")
     private Especialidade especialidade;
 
-    public Medico() {
-    }
+    @OneToMany(mappedBy = "medico")
+    private List<Consulta> consultas;
+
+    public Medico() {}
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -50,4 +53,7 @@ public class Medico {
 
     public Especialidade getEspecialidade() { return especialidade; }
     public void setEspecialidade(Especialidade especialidade) { this.especialidade = especialidade; }
+
+    public List<Consulta> getConsultas() { return consultas; }
+    public void setConsultas(List<Consulta> consultas) { this.consultas = consultas; }
 }
