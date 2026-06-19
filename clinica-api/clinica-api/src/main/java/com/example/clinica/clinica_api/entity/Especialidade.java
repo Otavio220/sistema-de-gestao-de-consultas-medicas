@@ -39,4 +39,3 @@ public class Especialidade {
     public List<Medico> getMedicos() { return medicos; }
     public void setMedicos(List<Medico> medicos) { this.medicos = medicos; }
 }
-
