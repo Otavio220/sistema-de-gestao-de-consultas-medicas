@@ -1,60 +1,67 @@
 package com.example.clinica.clinica_api.service;
 
-import com.example.clinica.clinica_api.entity.Consulta;
-import com.example.clinica.clinica_api.entity.Paciente;
-import com.example.clinica.clinica_api.entity.StatusConsulta;
-import com.example.clinica.clinica_api.repository.ConsultaRepository;
-import com.example.clinica.clinica_api.repository.PacienteRepository;
+import com.example.clinica.clinica_api.dto.RecepcionistaDTO;
+import com.example.clinica.clinica_api.entity.Recepcionista;
+import com.example.clinica.clinica_api.repository.RecepcionistaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RecepcionistaService {
 
     @Autowired
-    private ConsultaRepository consultaRepository;
+    private RecepcionistaRepository recepcionistaRepository;
 
-    @Autowired
-    private PacienteRepository pacienteRepository;
-
-    // Agendar consulta
-    public void agendarConsulta(Consulta consulta) {
-        if (consulta.getPaciente() == null) {
-            throw new RuntimeException("Paciente é obrigatório para agendar consulta");
-        }
-        if (consulta.getMedico() == null) {
-            throw new RuntimeException("Médico é obrigatório para agendar consulta");
-        }
-        consulta.setStatus(StatusConsulta.AGENDADA);
-        consultaRepository.save(consulta);
+    public List<RecepcionistaDTO> listarTodos() {
+        return recepcionistaRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
-    // Reagendar consulta
-    public void reagendarConsulta(Long consultaId, Consulta dadosNovos) {
-        Consulta consulta = consultaRepository.findById(consultaId)
-                .orElseThrow(() -> new RuntimeException("Consulta não encontrada"));
-        consulta.setDataHora(dadosNovos.getDataHora());
-        consulta.setConsultorio(dadosNovos.getConsultorio());
-        consulta.setStatus(StatusConsulta.REAGENDADA);
-        consultaRepository.save(consulta);
+    public List<RecepcionistaDTO> listarAtivos() {
+        return recepcionistaRepository.findByAtivoTrue().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
-    // Cancelar consulta
-    public void cancelarConsulta(Long consultaId) {
-        Consulta consulta = consultaRepository.findById(consultaId)
-                .orElseThrow(() -> new RuntimeException("Consulta não encontrada"));
-        consulta.setStatus(StatusConsulta.CANCELADA);
-        consultaRepository.save(consulta);
+    public RecepcionistaDTO buscarPorId(Long id) {
+        return toDTO(recepcionistaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Recepcionista não encontrado com id: " + id)));
     }
 
-    // Cadastrar paciente
-    public void cadastrarPaciente(Paciente paciente) {
-        if (paciente.getNome() == null || paciente.getNome().isBlank()) {
-            throw new RuntimeException("Nome do paciente é obrigatório");
-        }
-        if (pacienteRepository.existsByCpf(paciente.getCpf())) {
-            throw new RuntimeException("CPF já cadastrado");
-        }
-        pacienteRepository.save(paciente);
+    public RecepcionistaDTO criar(RecepcionistaDTO dto, String senha) {
+        recepcionistaRepository.findByEmail(dto.getEmail()).ifPresent(r -> {
+            throw new RuntimeException("Já existe um usuário com o e-mail: " + dto.getEmail());
+        });
+        Recepcionista r = new Recepcionista();
+        r.setNome(dto.getNome());
+        r.setEmail(dto.getEmail());
+        r.setSenha(senha);
+        r.setAtivo(true);
+        return toDTO(recepcionistaRepository.save(r));
+    }
+
+    public RecepcionistaDTO atualizar(Long id, RecepcionistaDTO dto) {
+        Recepcionista r = recepcionistaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Recepcionista não encontrado com id: " + id));
+        r.setNome(dto.getNome());
+        r.setEmail(dto.getEmail());
+        r.setAtivo(dto.getAtivo());
+        return toDTO(recepcionistaRepository.save(r));
+    }
+
+    public void inativar(Long id) {
+        Recepcionista r = recepcionistaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Recepcionista não encontrado com id: " + id));
+        r.setAtivo(false);
+        recepcionistaRepository.save(r);
+    }
+
+    private RecepcionistaDTO toDTO(Recepcionista r) {
+        RecepcionistaDTO dto = new RecepcionistaDTO();
+        dto.setId(r.getId());
+        dto.setNome(r.getNome());
+        dto.setEmail(r.getEmail());
+        dto.setAtivo(r.getAtivo());
+        return dto;
     }
 }

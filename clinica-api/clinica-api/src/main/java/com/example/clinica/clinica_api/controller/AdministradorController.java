@@ -1,8 +1,6 @@
 package com.example.clinica.clinica_api.controller;
 
-import com.example.clinica.clinica_api.entity.Especialidade;
-import com.example.clinica.clinica_api.entity.Medico;
-import com.example.clinica.clinica_api.entity.Usuario;
+import com.example.clinica.clinica_api.dto.AdministradorDTO;
 import com.example.clinica.clinica_api.service.AdministradorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,50 +8,45 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/administrador")
+@RequestMapping("/api/administradores")
 public class AdministradorController {
 
     @Autowired
     private AdministradorService administradorService;
 
-    @PostMapping("/usuarios")
-    public ResponseEntity<Void> gerenciarUsuarios(@RequestBody Usuario usuario) {
-        administradorService.gerenciarUsuarios(usuario);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    @GetMapping
+    public ResponseEntity<List<AdministradorDTO>> listarTodos(@RequestParam(required = false) Boolean ativos) {
+        if (Boolean.TRUE.equals(ativos)) {
+            return ResponseEntity.ok(administradorService.listarAtivos());
+        }
+        return ResponseEntity.ok(administradorService.listarTodos());
     }
 
-    @GetMapping("/usuarios")
-    public ResponseEntity<List<Usuario>> listarUsuarios() {
-        return ResponseEntity.ok(administradorService.listarUsuarios());
+    @GetMapping("/{id}")
+    public ResponseEntity<AdministradorDTO> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(administradorService.buscarPorId(id));
     }
 
-    @PostMapping("/medicos")
-    public ResponseEntity<Void> gerenciarMedicos(@RequestBody Medico medico) {
-        administradorService.gerenciarMedicos(medico);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    @PostMapping
+    public ResponseEntity<AdministradorDTO> criar(@RequestBody Map<String, Object> body) {
+        AdministradorDTO dto = new AdministradorDTO();
+        dto.setNome((String) body.get("nome"));
+        dto.setEmail((String) body.get("email"));
+        String senha = (String) body.get("senha");
+        return ResponseEntity.status(HttpStatus.CREATED).body(administradorService.criar(dto, senha));
     }
 
-    @GetMapping("/medicos")
-    public ResponseEntity<List<Medico>> listarMedicosAtivos() {
-        return ResponseEntity.ok(administradorService.listarMedicosAtivos());
+    @PutMapping("/{id}")
+    public ResponseEntity<AdministradorDTO> atualizar(@PathVariable Long id, @RequestBody AdministradorDTO dto) {
+        return ResponseEntity.ok(administradorService.atualizar(id, dto));
     }
 
-    @PostMapping("/consultores")
-    public ResponseEntity<Void> gerenciarConsultores(@RequestBody Usuario consultor) {
-        administradorService.gerenciarConsultores(consultor);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-    @PostMapping("/especialidades")
-    public ResponseEntity<Void> gerenciamentoEspecialidades(@RequestBody Especialidade especialidade) {
-        administradorService.gerenciamentoEspecialidades(especialidade);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-    @GetMapping("/especialidades")
-    public ResponseEntity<List<Especialidade>> listarEspecialidades() {
-        return ResponseEntity.ok(administradorService.listarEspecialidades());
+    @PatchMapping("/{id}/inativar")
+    public ResponseEntity<Void> inativar(@PathVariable Long id) {
+        administradorService.inativar(id);
+        return ResponseEntity.noContent().build();
     }
 }
