@@ -160,10 +160,13 @@ cd sistema-de-gestao-de-consultas-medicas/clinica-api/clinica-api
 Configure o banco de dados no arquivo `src/main/resources/application.properties`:
 
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/clinica_db
-spring.datasource.username=seu_usuario
-spring.datasource.password=sua_senha
+spring.datasource.url=jdbc:mysql://localhost:3306/clinica_db?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Recife
+spring.datasource.username=root
+spring.datasource.password=SUA_SENHA_AQUI
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
 spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
 ```
 
 Execute a aplicação:
