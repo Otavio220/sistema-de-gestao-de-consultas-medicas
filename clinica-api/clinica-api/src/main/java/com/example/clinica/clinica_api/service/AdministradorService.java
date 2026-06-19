@@ -1,73 +1,67 @@
 package com.example.clinica.clinica_api.service;
 
-import com.example.clinica.clinica_api.entity.Especialidade;
-import com.example.clinica.clinica_api.entity.Medico;
-import com.example.clinica.clinica_api.entity.Usuario;
-import com.example.clinica.clinica_api.repository.EspecialidadeRepository;
-import com.example.clinica.clinica_api.repository.MedicoRepository;
-import com.example.clinica.clinica_api.repository.UsuarioRepository;
+import com.example.clinica.clinica_api.dto.AdministradorDTO;
+import com.example.clinica.clinica_api.entity.Administrador;
+import com.example.clinica.clinica_api.repository.AdministradorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AdministradorService {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private AdministradorRepository administradorRepository;
 
-    @Autowired
-    private MedicoRepository medicoRepository;
-
-    @Autowired
-    private EspecialidadeRepository especialidadeRepository;
-
-    // Gerenciar usuários
-    public void gerenciarUsuarios(Usuario usuario) {
-        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-            throw new RuntimeException("Email já cadastrado");
-        }
-        usuarioRepository.save(usuario);
+    public List<AdministradorDTO> listarTodos() {
+        return administradorRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
-    // Gerenciar médicos
-    public void gerenciarMedicos(Medico medico) {
-        if (medico.getCrm() == null || medico.getCrm().isBlank()) {
-            throw new RuntimeException("CRM é obrigatório");
-        }
-        medicoRepository.save(medico);
+    public List<AdministradorDTO> listarAtivos() {
+        return administradorRepository.findByAtivoTrue().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
-    // Gerenciar consultores (usuários com cargo de consultor)
-    public void gerenciarConsultores(Usuario consultor) {
-        consultor.setCargo("CONSULTOR");
-        if (usuarioRepository.existsByEmail(consultor.getEmail())) {
-            throw new RuntimeException("Email já cadastrado");
-        }
-        usuarioRepository.save(consultor);
+    public AdministradorDTO buscarPorId(Long id) {
+        return toDTO(administradorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Administrador não encontrado com id: " + id)));
     }
 
-    // Gerenciamento de especialidades
-    public void gerenciamentoEspecialidades(Especialidade especialidade) {
-        if (especialidade.getNome() == null || especialidade.getNome().isBlank()) {
-            throw new RuntimeException("Nome da especialidade é obrigatório");
-        }
-        especialidadeRepository.save(especialidade);
+    public AdministradorDTO criar(AdministradorDTO dto, String senha) {
+        administradorRepository.findByEmail(dto.getEmail()).ifPresent(a -> {
+            throw new RuntimeException("Já existe um usuário com o e-mail: " + dto.getEmail());
+        });
+        Administrador a = new Administrador();
+        a.setNome(dto.getNome());
+        a.setEmail(dto.getEmail());
+        a.setSenha(senha);
+        a.setAtivo(true);
+        return toDTO(administradorRepository.save(a));
     }
 
-    // Listar todos os usuários
-    public List<Usuario> listarUsuarios() {
-        return usuarioRepository.findAll();
+    public AdministradorDTO atualizar(Long id, AdministradorDTO dto) {
+        Administrador a = administradorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Administrador não encontrado com id: " + id));
+        a.setNome(dto.getNome());
+        a.setEmail(dto.getEmail());
+        a.setAtivo(dto.getAtivo());
+        return toDTO(administradorRepository.save(a));
     }
 
-    // Listar todos os médicos ativos
-    public List<Medico> listarMedicosAtivos() {
-        return medicoRepository.findByAtivoTrue();
+    public void inativar(Long id) {
+        Administrador a = administradorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Administrador não encontrado com id: " + id));
+        a.setAtivo(false);
+        administradorRepository.save(a);
     }
 
-    // Listar todas as especialidades
-    public List<Especialidade> listarEspecialidades() {
-        return especialidadeRepository.findAll();
+    private AdministradorDTO toDTO(Administrador a) {
+        AdministradorDTO dto = new AdministradorDTO();
+        dto.setId(a.getId());
+        dto.setNome(a.getNome());
+        dto.setEmail(a.getEmail());
+        dto.setAtivo(a.getAtivo());
+        return dto;
     }
 }
