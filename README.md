@@ -194,8 +194,8 @@ Durante o desenvolvimento foram utilizados conceitos importantes de Engenharia d
 
 **Júlio César de Lucena** — Estudante de Engenharia de Software.
 
-**Reison Batista da Fonseca** — Estudante de Engenharia de Software.
+**Reilson Batista da Fonseca** — Estudante de Engenharia de Software.
 
-**Otavio Fernandes Santos e Silva** — Estudante de Engenharia de Software.
+**Otávio Fernandes Santos e Silva** — Estudante de Engenharia de Software.
 
 Projeto desenvolvido para a disciplina de Engenharia de Software, com o objetivo de aplicar conceitos de orientação a objetos, persistência de dados e boas práticas de desenvolvimento de software.
